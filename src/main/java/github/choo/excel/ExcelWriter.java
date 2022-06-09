@@ -5,9 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import github.choo.excel.annotation.ExcelColumnName;
 import github.choo.excel.data.ExcelData;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -24,6 +22,7 @@ public class ExcelWriter {
     static {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
+
     }
 
     public ExcelWriter(Workbook workbook,ExcelData data, HttpServletResponse response) {
@@ -72,22 +71,26 @@ public class ExcelWriter {
     }
 
     private void createHead(Sheet sheet, List<String> headList){
-        createRow(sheet, headList, 0);
+        CellStyle cellStyle = workbook.createCellStyle();
+        createRow(sheet, headList, 0, cellStyle);
     }
 
     private void createBody(Sheet sheet, List<List<String>> bodyList){
         int rowSize = bodyList.size();
+        CellStyle cellStyle = workbook.createCellStyle();
         for (int i = 0; i < rowSize; i++) {
-            createRow(sheet, bodyList.get(i), i +1);
+            createRow(sheet, bodyList.get(i), i + 1, cellStyle);
         }
     }
 
-    private void createRow(Sheet sheet, List<String> cellList, int rowNum) {
+    private void createRow(Sheet sheet, List<String> cellList, int rowNum, CellStyle style) {
         int size = cellList.size();
         Row row = sheet.createRow(rowNum);
 
         for (int i = 0; i < size; i++) {
-            row.createCell(i).setCellValue(cellList.get(i));
+            Cell cell = row.createCell(i);
+            cell.setCellStyle(style);
+            cell.setCellValue(cellList.get(i));
         }
     }
 

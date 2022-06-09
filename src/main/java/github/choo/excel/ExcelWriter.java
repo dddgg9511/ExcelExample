@@ -3,6 +3,7 @@ package github.choo.excel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import github.choo.excel.annotation.ExcelColumnName;
+import github.choo.excel.data.ExcelData;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -16,7 +17,7 @@ import java.util.*;
 
 public class ExcelWriter {
     private final Workbook workbook;
-    private final Map<String, Object> data;
+    private final ExcelData data;
     private final HttpServletResponse response;
     private static ObjectMapper objectMapper;
 
@@ -25,7 +26,7 @@ public class ExcelWriter {
         objectMapper.registerModule(new JavaTimeModule());
     }
 
-    public ExcelWriter(Workbook workbook, Map<String, Object> data, HttpServletResponse response) {
+    public ExcelWriter(Workbook workbook,ExcelData data, HttpServletResponse response) {
         this.workbook = workbook;
         this.data = data;
         this.response = response;
@@ -40,15 +41,15 @@ public class ExcelWriter {
     }
 
     private String mapToFileName(){
-        return String.valueOf(data.get("filename"));
+        return String.valueOf(data.getFileName());
     }
 
     private List<String> mapToHeadList(){
-        return (List<String>) data.get("head");
+        return data.getHeaders();
     }
 
     private List<List<String>> mapToBodyList(){
-        return (List<List<String>>) data.get("body");
+        return data.getBodies();
     }
 
     private void setFileName(HttpServletResponse response, String fileName) {
@@ -90,12 +91,12 @@ public class ExcelWriter {
         }
     }
 
-    public static Map<String, Object> createExcelData(List<?> data, Class<?> target, String fileName){
-        Map<String, Object> excelData = new HashMap<>();
-        excelData.put("filename", fileName);
-        excelData.put("head", createHeaderName(target));
-        excelData.put("body", createBodyData(data, target));
-        return excelData;
+    public static ExcelData createExcelData(List<?> data, Class<?> target, String fileName){
+        return new ExcelData(
+                fileName,
+                createHeaderName(target),
+                createBodyData(data, target)
+        );
     }
 
     private static List<String> createHeaderName(Class<?> header){
